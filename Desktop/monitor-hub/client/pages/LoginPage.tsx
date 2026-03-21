@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, isLoading, error } = useAuthStore();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState('');
@@ -12,15 +13,17 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError('');
+
     if (!email || !password) {
       setLocalError('Email and password are required');
       return;
     }
+
     try {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
-      setLocalError('Login failed');
+      setLocalError('Login failed. Check your credentials.');
     }
   };
 
@@ -29,26 +32,56 @@ export const LoginPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">MonitorHub</h1>
         <p className="text-gray-600 mb-8">Infrastructure Monitoring</p>
+
         <form onSubmit={handleSubmit}>
           {(error || localError) && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
               {error || localError}
             </div>
           )}
+
           <div className="mb-4">
-            <label className="block text-gray-700 font-semibold mb-2">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="you@example.com" disabled={isLoading} />
+            <label className="block text-gray-700 font-semibold mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="you@example.com"
+              disabled={isLoading}
+            />
           </div>
+
           <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-2">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••" disabled={isLoading} />
+            <label className="block text-gray-700 font-semibold mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="••••••••"
+              disabled={isLoading}
+            />
           </div>
-          <button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+          >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+
         <p className="text-center text-gray-600 mt-6">
-          Don't have an account? <Link to="/signup" className="text-blue-600 hover:underline font-semibold">Sign up</Link>
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-blue-600 hover:underline font-semibold">
+            Sign up
+          </Link>
         </p>
       </div>
     </div>

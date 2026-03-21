@@ -1,5 +1,7 @@
 import { DataSource } from 'typeorm';
 import { User } from '../models/User';
+import { Check } from '../models/Check';
+import { CheckHistory } from '../models/CheckHistory';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -10,7 +12,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DATABASE_NAME || 'monitorhub',
   synchronize: true,
   logging: process.env.NODE_ENV === 'development',
-  entities: [User],
+  entities: [User, Check, CheckHistory],
   migrations: [],
   subscribers: [],
 });
