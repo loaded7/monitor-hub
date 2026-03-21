@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.10.0",
     "redis": "^4.6.5",
+    "resend": "^6.9.4",
     "socket.io": "^4.5.4",
     "typeorm": "^0.3.16"
   },

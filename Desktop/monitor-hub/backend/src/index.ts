@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { initializeDatabase } from './config/database';
 import authRoutes from './routes/authRoutes';
 import checkRoutes from './routes/checkRoutes';
+import userRoutes from './routes/userRoutes';
 import statsRoutes from './routes/statsRoutes';
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/checks', checkRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/stats', statsRoutes);
 
 // 404 handler

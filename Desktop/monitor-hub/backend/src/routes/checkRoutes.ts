@@ -129,7 +129,11 @@ router.post('/:id/test', authMiddleware, async (req: Request, res: Response) => 
       timeoutMs: check.timeoutMs,
     });
 
-    // Salvar histórico
+    check.responseTimeMs = result.responseTimeMs ?? 0;
+    check.lastCheckedAt = new Date();
+    check.status = result.success ? 'ok' : 'down';
+    await checkRepository.save(check);
+
     const history = historyRepository.create({
       checkId: check.id,
       status: result.success ? 'success' : 'failure',
