@@ -101,12 +101,13 @@ const handleTestAlert = async () => {
     setTesting(null);
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await api.delete(`/checks/${id}`);
-      loadChecks();
-    } catch (e) { console.error(e); }
-  };
+  const handleDelete = async (id: string, name: string) => {
+  if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  try {
+    await api.delete(`/checks/${id}`);
+    loadChecks();
+  } catch (e) { console.error(e); }
+};
 
   const okCount = checks.filter(c => c.status === 'ok').length;
   const downCount = checks.filter(c => c.status === 'down').length;
@@ -249,7 +250,7 @@ const handleTestAlert = async () => {
                         style={{ padding: '4px 10px', border: `0.5px solid ${t.inputBorder}`, borderRadius: 6, fontSize: 11, cursor: 'pointer', background: 'transparent', color: testing === check.id ? t.textMuted : '#185FA5' }}>
                         {testing === check.id ? '...' : 'Test'}
                       </button>
-                      <button onClick={() => handleDelete(check.id)}
+                      onClick={() => handleDelete(check.id, check.name)}
                         style={{ padding: '4px 10px', border: '0.5px solid #f7c1c1', borderRadius: 6, fontSize: 11, cursor: 'pointer', background: 'transparent', color: '#A32D2D' }}>
                         Delete
                       </button>
