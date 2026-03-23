@@ -14,9 +14,12 @@ const app: Express = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://monitor-3bchtzzd7-loaded7s-projects.vercel.app',
+  ],
   credentials: true,
 }));
 app.use(express.json());
