@@ -18,6 +18,7 @@ app.use(cors({
   origin: [
     'http://localhost:3000',
     'http://localhost:3001',
+    'https://monitor-hub-tan.vercel.app',
     'https://monitor-3bchtzzd7-loaded7s-projects.vercel.app',
   ],
   credentials: true,
