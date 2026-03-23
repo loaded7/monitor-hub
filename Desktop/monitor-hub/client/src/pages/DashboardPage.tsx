@@ -25,32 +25,10 @@ export const DashboardPage: React.FC = () => {
   const [activeNav, setActiveNav] = useState('overview');
   const [alertEmail, setAlertEmail] = useState('');
   const [alertSaved, setAlertSaved] = useState(false);
+  const [alertSaving, setAlertSaving] = useState(false);
+  const [alertTestSent, setAlertTestSent] = useState(false);
   const [darkMode, setDarkMode] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
   const [apiKeyVisible, setApiKeyVisible] = useState(false);
-  const [alertSaving, setAlertSaving] = useState(false);
-const [alertTestSent, setAlertTestSent] = useState(false);
-
-const handleSaveAlert = async () => {
-  if (!alertEmail || !alertEmail.includes('@')) return;
-  setAlertSaving(true);
-  try {
-    await api.put('/user/alert-email', { alertEmail });
-    setAlertSaved(true);
-  } catch (e) {
-    console.error(e);
-  }
-  setAlertSaving(false);
-};
-
-const handleTestAlert = async () => {
-  try {
-    await api.post('/user/test-alert');
-    setAlertTestSent(true);
-    setTimeout(() => setAlertTestSent(false), 4000);
-  } catch (e) {
-    console.error(e);
-  }
-};
 
   const t = {
     bg: darkMode ? '#0f0f0f' : '#f5f5f4',
@@ -68,11 +46,8 @@ const handleTestAlert = async () => {
     try {
       const res = await api.get('/checks');
       setChecks(res.data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }, []);
 
   useEffect(() => {
@@ -102,12 +77,30 @@ const handleTestAlert = async () => {
   };
 
   const handleDelete = async (id: string, name: string) => {
-  if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
-  try {
-    await api.delete(`/checks/${id}`);
-    loadChecks();
-  } catch (e) { console.error(e); }
-};
+    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/checks/${id}`);
+      loadChecks();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleSaveAlert = async () => {
+    if (!alertEmail || !alertEmail.includes('@')) return;
+    setAlertSaving(true);
+    try {
+      await api.put('/user/alert-email', { alertEmail });
+      setAlertSaved(true);
+    } catch (e) { console.error(e); }
+    setAlertSaving(false);
+  };
+
+  const handleTestAlert = async () => {
+    try {
+      await api.post('/user/test-alert');
+      setAlertTestSent(true);
+      setTimeout(() => setAlertTestSent(false), 4000);
+    } catch (e) { console.error(e); }
+  };
 
   const okCount = checks.filter(c => c.status === 'ok').length;
   const downCount = checks.filter(c => c.status === 'down').length;
@@ -129,7 +122,7 @@ const handleTestAlert = async () => {
     return '#d4d4d0';
   };
 
-  const maskedKey = (key: string) => key ? `${key.slice(0, 8)}${'•'.repeat(20)}${key.slice(-4)}` : '';
+  const maskedKey = (key: string) => key ? `${key.slice(0, 8)}${'*'.repeat(20)}${key.slice(-4)}` : '';
 
   const navItems = [
     { id: 'overview', label: 'Overview' },
@@ -155,51 +148,35 @@ const handleTestAlert = async () => {
     color: t.text,
   };
 
-  const AddForm = () => (
-    <div style={{ padding: 16, borderBottom: `0.5px solid ${t.border}`, background: darkMode ? '#161616' : '#fafaf9' }}>
-      <form onSubmit={handleAdd} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <div>
-          <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>Name</div>
-          <input
-            value={newCheck.name}
-            onChange={e => setNewCheck(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="My API" required
-            style={{ ...inputStyle, width: 150 }}
-          />
-        </div>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>URL</div>
-          <input
-            value={newCheck.url}
-            onChange={e => setNewCheck(prev => ({ ...prev, url: e.target.value }))}
-            placeholder="https://example.com" required
-            style={{ ...inputStyle, width: '100%' }}
-          />
-        </div>
-        <div>
-          <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>Type</div>
-          <select
-            value={newCheck.type}
-            onChange={e => setNewCheck(prev => ({ ...prev, type: e.target.value }))}
-            style={{ ...inputStyle }}
-          >
-            <option value="http">HTTP</option>
-            <option value="tcp">TCP</option>
-          </select>
-        </div>
-        <button type="submit" style={{ padding: '7px 16px', background: '#185FA5', color: '#E6F1FB', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Save</button>
-        <button type="button" onClick={() => setShowForm(false)} style={{ padding: '7px 16px', background: 'transparent', border: `0.5px solid ${t.inputBorder}`, borderRadius: 8, fontSize: 13, cursor: 'pointer', color: t.textMuted }}>Cancel</button>
-      </form>
-    </div>
-  );
-
-  const MonitorsTable = () => (
+  const renderTable = () => (
     <div style={{ background: t.surface, border: `0.5px solid ${t.border}`, borderRadius: 12, overflow: 'hidden' }}>
       <div style={{ padding: '12px 16px', borderBottom: `0.5px solid ${t.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: 13, fontWeight: 500, color: t.text }}>Monitors</span>
         <span style={{ fontSize: 11, color: t.textMuted }}>{checks.length} total</span>
       </div>
-      {showForm && <AddForm />}
+      {showForm && (
+        <div style={{ padding: 16, borderBottom: `0.5px solid ${t.border}`, background: darkMode ? '#161616' : '#fafaf9' }}>
+          <form onSubmit={handleAdd} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div>
+              <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>Name</div>
+              <input value={newCheck.name} onChange={e => setNewCheck(p => ({ ...p, name: e.target.value }))} placeholder="My API" required style={{ ...inputStyle, width: 150 }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>URL</div>
+              <input value={newCheck.url} onChange={e => setNewCheck(p => ({ ...p, url: e.target.value }))} placeholder="https://example.com" required style={{ ...inputStyle, width: '100%' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>Type</div>
+              <select value={newCheck.type} onChange={e => setNewCheck(p => ({ ...p, type: e.target.value }))} style={{ ...inputStyle }}>
+                <option value="http">HTTP</option>
+                <option value="tcp">TCP</option>
+              </select>
+            </div>
+            <button type="submit" style={{ padding: '7px 16px', background: '#185FA5', color: '#E6F1FB', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Save</button>
+            <button type="button" onClick={() => setShowForm(false)} style={{ padding: '7px 16px', background: 'transparent', border: `0.5px solid ${t.inputBorder}`, borderRadius: 8, fontSize: 13, cursor: 'pointer', color: t.textMuted }}>Cancel</button>
+          </form>
+        </div>
+      )}
       {loading ? (
         <div style={{ padding: 40, textAlign: 'center', color: t.textMuted, fontSize: 13 }}>Loading...</div>
       ) : checks.length === 0 ? (
@@ -230,12 +207,12 @@ const handleTestAlert = async () => {
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     {check.responseTimeMs ? (
-                      <>
+                      <div>
                         <div style={{ color: t.text }}>{check.responseTimeMs}ms</div>
                         <div style={{ height: 3, borderRadius: 2, background: darkMode ? '#333' : '#E6F1FB', marginTop: 4, width: 80 }}>
                           <div style={{ height: '100%', borderRadius: 2, background: check.responseTimeMs < 300 ? '#639922' : check.responseTimeMs < 800 ? '#EF9F27' : '#E24B4A', width: `${Math.min(100, Math.round(check.responseTimeMs / 10))}%` }} />
                         </div>
-                      </>
+                      </div>
                     ) : <span style={{ color: t.textMuted }}>—</span>}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
@@ -250,7 +227,7 @@ const handleTestAlert = async () => {
                         style={{ padding: '4px 10px', border: `0.5px solid ${t.inputBorder}`, borderRadius: 6, fontSize: 11, cursor: 'pointer', background: 'transparent', color: testing === check.id ? t.textMuted : '#185FA5' }}>
                         {testing === check.id ? '...' : 'Test'}
                       </button>
-                      onClick={() => handleDelete(check.id, check.name)}
+                      <button onClick={() => handleDelete(check.id, check.name)}
                         style={{ padding: '4px 10px', border: '0.5px solid #f7c1c1', borderRadius: 6, fontSize: 11, cursor: 'pointer', background: 'transparent', color: '#A32D2D' }}>
                         Delete
                       </button>
@@ -335,13 +312,8 @@ const handleTestAlert = async () => {
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 4 }}>Notification email</div>
-                <input
-                  type="email"
-                  value={alertEmail}
-                  onChange={e => { setAlertEmail(e.target.value); setAlertSaved(false); }}
-                  placeholder={user?.email}
-                  style={{ ...inputStyle, width: '100%' }}
-                />
+                <input type="email" value={alertEmail} onChange={e => { setAlertEmail(e.target.value); setAlertSaved(false); }}
+                  placeholder={user?.email} style={{ ...inputStyle, width: '100%' }} />
               </div>
               <button onClick={handleSaveAlert} disabled={alertSaving}
                 style={{ padding: '8px 16px', background: '#185FA5', color: '#E6F1FB', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', flexShrink: 0 }}>
@@ -393,11 +365,11 @@ const handleTestAlert = async () => {
     }
 
     if (activeNav === 'monitors') {
-      return <MonitorsTable />;
+      return renderTable();
     }
 
     return (
-      <>
+      <div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12, marginBottom: 20 }}>
           {[
             { label: 'Total monitors', value: checks.length, sub: `${checks.length} checks`, subColor: t.textMuted },
@@ -412,7 +384,7 @@ const handleTestAlert = async () => {
             </div>
           ))}
         </div>
-        <MonitorsTable />
+        {renderTable()}
         <div style={{ background: t.surface, border: `0.5px solid ${t.border}`, borderRadius: 12, padding: 16, marginTop: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: t.text, marginBottom: 8 }}>API Key</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -429,11 +401,15 @@ const handleTestAlert = async () => {
             </button>
           </div>
         </div>
-      </>
+      </div>
     );
   };
 
-  if (!user) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg }}><p style={{ color: t.textMuted }}>Loading...</p></div>;
+  if (!user) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg }}>
+      <p style={{ color: t.textMuted }}>Loading...</p>
+    </div>
+  );
 
   return (
     <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui, sans-serif', background: t.bg, overflow: 'hidden' }}>
